@@ -1,8 +1,8 @@
 package jcapi
 
 import (
-	"encoding/json"
 	"fmt"
+	"os"
 )
 
 type JCSystem struct {
@@ -301,18 +301,26 @@ func (jc JCAPI) GetSystems(withTags bool) ([]JCSystem, JCError) {
 // Update a system
 //
 func (jc JCAPI) UpdateSystem(system JCSystem) (systemId string, err JCError) {
-	data, err := json.Marshal(system)
-	if err != nil {
-		return "", fmt.Errorf("ERROR: Could not marshal JCSystem object, err='%s'", err)
-	}
+	//data, err := json.Marshal(system)
+	data := []byte("{\"allowSshRootLogin\" : true, \"displayName\" : \"weirdo\" }")
+	//if err != nil {
+	//	return "", fmt.Errorf("ERROR: Could not marshal JCSystem object, err='%s'", err)
+	//}
 	url := "/systems/" + system.Id
 
-	jcSysRec, err := jc.Do(MapJCOpToHTTP(Update), url, data)
+	os.Stdout.Write(data)
+
+	//jcSysRec, err := jc.Do(MapJCOpToHTTP(Update), url, data)
+	jcSysRec, err := jc.Put(url, []byte(data))
 	if err != nil {
 		return "", fmt.Errorf("ERROR: Could not update JCSystem object, err='%s'", err)
 	}
+
 	var returnSystem JCSystem
 	getJCSystemFieldsFromInterface(jcSysRec.(map[string]interface{}), &returnSystem)
+
+	//out, _ := json.MarshalIndent(returnSystem, "", " ")
+	//os.Stdout.Write(out)
 
 	if returnSystem.Id != system.Id {
 		return "", fmt.Errorf("ERROR: JumpCloud did not return the same ID - this should never happen!")
